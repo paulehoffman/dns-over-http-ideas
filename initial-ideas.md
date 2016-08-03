@@ -83,13 +83,19 @@ Decide what to do with the other sections, such as authority and additional.
 Set HTTP cache headers according to shortest DNS TTL in the response.
 Set etags, do If-None-Match.
 
-## DNSSec
+## DNSSEC
 
-Turn DNSSec on by default, or just turn off DNSSec for the Internet.
-Never return information about whether the recursive resolver thought the DNSSec
-was right; I can't trust that anyway, so it's useless.  Consider what effect
-this has on response size, perhaps require separate requests for names higher
-in the tree in order to get better caching.
+Joe's idea: Always get all related DNSSEC records by default, or just turn off
+DNSSEC for the Internet. Never return information about whether the recursive
+resolver thought the DNSSEC was right; I can't trust that anyway, so it's
+useless.  Consider what effect this has on response size, perhaps require
+separate requests for names higher in the tree in order to get better caching.
+
+Paul's idea: Don't pull DNSSEC data by default because few stubs can use it and
+it causes a huge increase in response sizes. Of course, allow a stub to request
+the DNSSEC records with the CD and DO bits. Return the AD bit in the response
+just as it is done today. Don't use this protocol as a way of forcing DNSSEC
+down the throats of stub resolvers, particularly in IoT.
 
 ## Security
 
