@@ -19,6 +19,9 @@ for resolver-to-authoritative.
 * Small device that has COAP and CBOR already doesn't want to have a DNS
   parser, etc.
 * Eventually: DETH-style editing
+* DNS stapling in HTTP context - this is a bit different, an h2
+  connection is allowed to push (authenticated) records at the client
+  that it knows it is going to lookup.
 
 ## Discovery
 
@@ -34,7 +37,10 @@ most likely HTTPS.
   requests that gets the template back.
 * Need to think about SNI for IP addresses; how do you ensure you're talking
   to the DNS API server you think you're talking to, if that thing doesn't
-  have a name?  If it does have a name, how do you bootstrap resolution?
+  have a name?  If it does have a name, how do you bootstrap
+  resolution? [mcmanus - it needs a name to do
+  authentication. probably need to discover a full origin and
+  bootstrap address]
 
 ## Templates
 
@@ -47,6 +53,9 @@ well-known types.
 
 Decide what to do about multiple in-flight requests and ordering.
 Example: require H2.
+[mcmanus - leave it up to the http app. H2 is a great approach, but
+parallel H1 might work too. worth discussing for perf, but they have
+the same http semantics]
 
 ### Verbs
 
@@ -56,7 +65,8 @@ as different discoverability for the template.
 
 GET with no body does simple request with no EDNS, but a newly-defined set of
 defaults. GET must be sent with `Accept:` header to say what Content-Types can be
-returned.
+returned. [mcmanus - http has some things to say about
+accept. Generally its very good advice to honor it, but its not a requirement]
 
 ### Parameterized requests
 
@@ -64,6 +74,13 @@ Any extensions or modifications to a simple request require extensions.
 Extensions appear in the body. If a body is sent, the GET must have a
 Content-Type header. Define at least one content type for the body (JSON, as a
 dict) so others can model it.
+
+[mcmanus - don't send GET with body. Its technically allowed but in
+practice will give you problems by surprising other elements. The only
+reason you might entertain it would be to allow caching, but no cache
+in its right mind is going to save and compare request bodies as cache
+keys anyhow. Go POST imo if this can't be encoded in the URI (which
+would be preferable).]
 
 ### Response
 
@@ -97,6 +114,13 @@ the DNSSEC records with the CD and DO bits. Return the AD bit in the response
 just as it is done today. Don't use this protocol as a way of forcing DNSSEC
 down the throats of stub resolvers, particularly in IoT.
 
+McManus's idea: provide a js library that can take the json with
+dnssec data and validate it locally. I would return it by default but
+should be configurable. (e.g. for HTTPS DNS is not actually part of
+the security model - it uses a different root for that.. but if we
+were going to staple cross-orgin DNS resolutions it would make sense
+to require them to be DNSSEC verified.. so two different modes).
+
 ## Security
 
 Need to think about HTTP authorization mechanisms. This would allow user
@@ -105,3 +129,17 @@ filtering.  Several bad ideas are likely here, so let's think about it early.
 
 Define what to do with cookies; one approach: always ignore, make sure not
 to send.  Regardless, DO NOT allow * cookies.
+
+[mcmanus: Its kind of weird to say do not allow normal http mechanisms
+like cookies in a foo-over-http spec.. a lot of the libraries used for
+implementation won't have great visibility into letting you do
+that. Its tempting to just say do whatever you want for http auth
+(which could be digest challenges, it could be bearer cookies, it
+could be bearer auth headers.. it could be some wacky SAML thing..)
+
+require secure templates ala https
+
+for considerations: DNS API servers should understand CORS.. especially to the extent that
+they are deployed behind firewalls
+
+does a redirect for a recursive resolver make any sense?]
