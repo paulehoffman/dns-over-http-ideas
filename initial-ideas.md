@@ -48,6 +48,11 @@ where `{queriedname}` is an FQDN (trailing dot is allowed, not required),
 well-known types.
 Any request that has extensions or modifications requires an extensions list.
 
+Paul's alternative: No template as such, just `/?name1=value1&name2=value2&...`.
+There must be one name/value pair with name "qname", where the value is
+an FQDN (trailing dot is allowed, not required). If name "rtype" is not
+given, it defaults to 1 ("A"). All other name/value pairs are optional.
+
 ## Protocol
 
 Decide what to do about multiple in-flight requests and ordering.
