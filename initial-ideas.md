@@ -23,6 +23,16 @@ for resolver-to-authoritative.
   connection is allowed to push (authenticated) records at the client
   that it knows it is going to lookup.
 
+## Protocol Requirements
+
+* The protocol must use HTTP semantics the way that they are commonly used
+  in other protocols; there is nothing special about the DNS case.
+* The query format must be able to be flexible enough to express any normal
+  DNS query.
+* The response must be able to be in different formats that can be described
+  by different documents.
+* Both the query format and the response formats must be extensible.
+
 ## Discovery
 
 Discovery of a DNS API resolver is the same as for a DNS resolver: DHCPv4,
